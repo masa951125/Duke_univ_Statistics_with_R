@@ -28,6 +28,20 @@ ggplot(data=yrbss_sample_mean_1000,aes(x=x_bar_physical))+
   geom_histogram(color="black")+ 
   geom_vline(xintercept=mean(yrbss_sample_mean_1000$x_bar_physical),col="red")
 
+pt(-0.87,df=199,lower.tail = T)*2
 
-mu = mean(yrbss_sample_mean_1000$x_bar_physical)
-s = sd(yrbss_sample_mean_1000$x_bar_physical)
+#r_lab
+#finding the smallest p-values
+
+p <- vector()
+df <- data.frame()
+
+for(i in unique(nc$mage)){
+  nc_test <-nc %>% mutate(test_mature= ifelse(nc$mage>i, "mature", "young"))
+  d <- inference(y= weight, x=test_mature, data=nc_test, 
+                 statistic = "mean", type = "ht", 
+                 null = 0, alternative = "twosided", method = "theoretical")
+  df <-rbind(df,c(i, d$p_value))
+} 
+colnames(df)  <- c("age","p_value")
+df
