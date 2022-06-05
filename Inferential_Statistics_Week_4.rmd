@@ -34,21 +34,35 @@ dim(nc)
 
 We have observations on 13 different variables, some categorical and some numerical. The meaning of each variable is as follows.
 
++------------------+----------------------------------------------------------------------------+
 | variable         | description                                                                |
-|------------------|----------------------------------------------------------------------------|
++==================+============================================================================+
 | `fage`           | father's age in years.                                                     |
++------------------+----------------------------------------------------------------------------+
 | `mage`           | mother's age in years.                                                     |
++------------------+----------------------------------------------------------------------------+
 | `mature`         | maturity status of mother.                                                 |
++------------------+----------------------------------------------------------------------------+
 | `weeks`          | length of pregnancy in weeks.                                              |
++------------------+----------------------------------------------------------------------------+
 | `premie`         | whether the birth was classified as premature (premie) or full-term.       |
++------------------+----------------------------------------------------------------------------+
 | `visits`         | number of hospital visits during pregnancy.                                |
++------------------+----------------------------------------------------------------------------+
 | `marital`        | whether mother is `married` or `not married` at birth.                     |
++------------------+----------------------------------------------------------------------------+
 | `gained`         | weight gained by mother during pregnancy in pounds.                        |
++------------------+----------------------------------------------------------------------------+
 | `weight`         | weight of the baby at birth in pounds.                                     |
++------------------+----------------------------------------------------------------------------+
 | `lowbirthweight` | whether baby was classified as low birthweight (`low`) or not (`not low`). |
++------------------+----------------------------------------------------------------------------+
 | `gender`         | gender of the baby, `female` or `male`.                                    |
++------------------+----------------------------------------------------------------------------+
 | `habit`          | status of the mother as a `nonsmoker` or a `smoker`.                       |
++------------------+----------------------------------------------------------------------------+
 | `whitemom`       | whether mom is `white` or `not white`.                                     |
++------------------+----------------------------------------------------------------------------+
 
 1 There are 1,000 cases in this data set, what do the cases represent?
 
@@ -276,10 +290,21 @@ df
 
 </div>
 
+**Research Question**
+
+Is there significant difference between white and non-white moms in terms of the number of hospital visits? We use the significance level $\alpha= 0.05$
+
+$H_0: \mu_{white} = \mu_{non-white}$\
+$H_A: \mu_{white} \ne \mu_{non-white}$
+
 ```{r pick-your-own}
 # type your code for the Exercise here, and Knit
 
+inference(y= visits, x=whitemom, data=nc, statistic = "mean", type = "ht", null = 0, alternative = "twosided", method = "theoretical", order=c("white","not white"))
+
 ```
+
+From this test, we know $p-value = 0.024$, which is smaller than the significance level $\alpha=0.05$ We have a strong evidence that there is difference between white and non white moms in terms of the number of visits to hospital.
 
 ::: {#license}
 This is a product of OpenIntro that is released under a [Creative Commons Attribution-ShareAlike 3.0 Unported](http://creativecommons.org/licenses/by-sa/3.0). This lab was written for OpenIntro by Andrew Bray and Mine Çetinkaya-Rundel.
