@@ -1,0 +1,946 @@
+---
+title: "Statistical inference with the GSS data"
+output:
+  html_document:
+    fig_height: 4
+    highlight: pygments
+    theme: spacelab
+  pdf_document: default
+  word_document: default
+editor_options:
+  markdown:
+    wrap: 72
+---
+
+## Introduction
+
+Trust is essential to maintain financial system. Without it, we cannot
+deposit money in a bank. Companies cannot borrow money from banks and
+garner investment from people. The main reason of the Great Recession in
+2008 was collective loss of trust in financial institutions.
+
+In this brief paper, we will look at changes in people's trust in
+financial institutions. We use the General Social Survey (GSS) to
+investigate this. GSS is a collective data since 1972. It has monitored
+social change in American society, including a question about the trust
+in banks and other financial institutions.
+
+From this data, we find more proportion of people who had a great deal
+of confidence in financial institutions than that of people who had
+hardly any confidence in them in the 1970s and most in the 1980s. In the
+1990s, the proportions were fluctuating, then reversed in 2008, which
+was exactly the year when the financial crisis occurred. We prove this
+was not coincidental. In addition to this, we look at whether there was
+any racial factor. We show that there was no racial bias affecting the
+trust in financial institutions.
+
+------------------------------------------------------------------------
+
+## Part 1: Data
+
+GSS data was collected by interviews whose median time was one and half
+hour. Total rows are 57061, and 114 columns. The data includes 1972,
+1973, 1974, 1975, 1976, 1977, 1978, 1980, 1982, 1983, 1984, 1985, 1986,
+1987, 1988, 1989, 1990, 1991, 1993, 1994, 1996, 1998, 2000, 2002, 2004,
+2006, 2008, 2010, 2012 data. Basically, the same questions were asked in
+the survey, thus we look into annual changes in terms of each question.
+In this paper, we will use tidyverse package and patchwork package in R.
+The data was modified by Duke university from the original GSS to
+exclude missing data and include factorized data.
+
+```{r load-packages, message=FALSE, include=FALSE}
+library(tidyverse)
+library(patchwork)
+load("gss.Rdata")
+dim(gss)
+unique(gss$year)
+```
+
+------------------------------------------------------------------------
+
+## Part 2: Research question
+
+1.  How has the trust in financial institutions changed in recent years?
+
+2.  How did the financial crisis in 2008 affect people's confidence in
+    financial institutions?
+
+3.  Is there any differences in the confidence among race groups?
+
+------------------------------------------------------------------------
+
+## Part 3: Exploratory data analysis
+
+First, we will illustrate annual changes in people's confidence in
+financial institutions as a line graph. We drop years which do not
+contain values (1972,73,74, and 85). We compare proportions of two
+response, those who have a great deal of confidence in these
+institutions and those who have hardly no confidence in them.
+
+```{r echo=FALSE}
+
+#replace NA with "No Answer"
+levels <- levels(gss$confinan)
+levels[length(levels) + 1] <- "No Answer"
+gss$confinan <- factor(gss$confinan, levels = levels)
+gss$confinan[is.na(gss$confinan)] <- "No Answer"
+
+#make data frame including the annual changes
+changes <- data.frame(addmargins(table(gss$year, gss$confinan)))
+df_changes <- spread(data= changes,key =Var2 , value=Freq)
+df_changes <- rename(df_changes, Year=Var1)
+df_changes <- df_changes %>% mutate(pro_great=(`A Great Deal` /Sum), 
+                                    pro_hardly=(`Hardly Any`/Sum))
+
+#remove years that contain no data
+df_changes <-df_changes[c(-1,-2,-3,-12,-30),] 
+
+#graph 
+g <-ggplot(data=df_changes) +
+  geom_line(aes(Year,pro_great,group=1,col="A great deal"))
+g+ geom_line(aes(Year,pro_hardly,group=1, col="Hardly any"))+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  xlab("Year")+ylab("Confidence")+
+  ggtitle("Changes in confidence on financial institutes")+
+  geom_vline(xintercept = "2008",linetype=4)
+
+```
+
+From 1975 to 1989, the confidence in financial institutions were high,
+even though we see gradual decrease throughout these years. From the
+1990s, the figures had fluctuated until 2008. From 2008 to 2010, people
+seemed to lose confidence in them considerably.
+
+Then, we choose the data of 2008 and 2010, and compare them. Here are
+the proportion tables, the upper is 2008 data and the lower is 2010
+data.
+
+```{r echo=FALSE}
+#filter the data
+gss_2010 <- gss %>% filter(year==2010)
+gss_2008 <- gss %>% filter(year==2008) 
+
+#cross tabulation
+addmargins(prop.table(table("2008"=gss_2008$confinan)))*100
+addmargins(prop.table(table("2010"=gss_2010$confinan)))*100
+```
+
+The proportion of high confidence("A Great Deal") dropped from 13.0% to
+7.0 %, in contrast the proportion of no confidence("Hardly Any") almost
+doubled( from 13.9% to 27.6%). The graphs clearly endorses these
+figures.
+
+```{r echo=FALSE, fig.height=5, fig.width=8}
+g_2010 <- ggplot(data=gss_2010,aes(x=confinan))+
+  geom_bar()+
+  ggtitle("2010 Confidence in financial institution")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  scale_y_continuous(limits = c(0, 900))
+
+g_2008 <- ggplot(data=gss_2008,aes(x=confinan))+
+  geom_bar()+
+  ggtitle("2008 Confidence in financial institution")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  scale_y_continuous(limits = c(0, 900))
+
+g_2010 + g_2008
+
+```
+
+Did the financial crisis affect people's confidence in banks and other
+institutions differently in term of races? We look into each response
+further showing racial proportion. Here is the graph.
+
+```{r echo=FALSE, fig.height=5, fig.width=8}
+g_2010_fill <- ggplot(data=gss_2010,aes(x=confinan,fill=race))+
+  geom_bar(position="fill")+
+  ggtitle("2010 Confidence in financial institution")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+g_2008_fill <- ggplot(data=gss_2008,aes(x=confinan,fill=race))+
+  geom_bar(position="fill")+
+  ggtitle("2008 Confidence in financial institution")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+g_2010_fill + g_2008_fill
+
+```
+
+Show the racial proportion table of those who responded,"Hardly Any",
+2008 and 2010 respectively;
+
+```{r echo=FALSE}
+prop.table(
+  table("2008 'Hardly Any'"=
+          (gss_2008 %>% filter(confinan=="Hardly Any"))$race))*100
+```
+
+```{r echo=FALSE}
+prop.table(
+  table("2010 'Hardly Any'"
+        =(gss_2010 %>% filter(confinan=="Hardly Any"))$race))*100
+```
+
+The proportion of white increased (73.7% to 79.1%), however those of
+black and other decreased(16.0% to13%, 10.3% to 7.4%, respectively).
+Does that mean financial institutions were able to regain minority
+groups' confidence?
+
+Then look at the racial proportion table of those who responded,"A Great
+Deal";
+
+```{r echo=FALSE}
+prop.table(
+  table("2008 'A Great Deal'"
+        =(gss_2008 %>% filter(confinan=="A Great Deal"))$race))*100
+```
+
+```{r echo=FALSE}
+prop.table(
+  table("2010 'A Great Deal'"
+        =(gss_2010 %>% filter(confinan=="A Great Deal"))$race))*100
+```
+
+Just contrary to the previous response, white decreased (71.5% to
+64.6%), black increased (16.0% to 22.9%), and other remained the same
+(12.5%)
+
+These two responses seem to indicate while the white lost confidence in
+banks and other financial organizations, but the black regain confidence
+somewhat by the financial crisis. As we know the crisis hit particularly
+vulnerable people, the data seem counter-intuitive. We will also
+investigate this statistically.
+
+From these data exploration, we have two observations;
+
+1.  People's confidence in financial institutions dropped from 2008 to
+    2010
+2.  Even though the confidence plummeted, there were racial differences.
+    While whites seems to have been heavily hit, minority groups show a
+    sign of improvement.
+
+In the next segment, we will prove statistically whether the hypotheses
+are true or not.
+
+------------------------------------------------------------------------
+
+## Part 4: Inference
+
+Following studies, we set the significance level $\alpha=0.05$ .
+
+```{r include=FALSE}
+alpha =0.05
+
+```
+
+### **Significant changes between 2008 and 2010?**
+
+#### **a) "A Great Deal" of confidence**
+
+Here we will look into the response of those who have "A Great Deal" of
+confidence in financial institutions. We look at the changes in the
+confidence between 2008 and 2010. As we explored in the previous
+segment, the descriptive data indicate the proportion of people who have
+confidence in financial institution "a great deal" decreased. Do the
+data provide convincing evidence to say this?
+
+Before beginning statistical analysis, we check the conditions to apply
+the normal models.
+
+-   Independence:
+
+The values are extracted from randomly selected data.
+
+The sample size of 2008 ($n_{2008}=2023$) and 2010 ($n_{2010}=2044$) is
+less than 10% of the population.
+
+-   The success-failure condition:
+
+$$
+n_{2008} *p_{2008\,great}=263,\ n_{2008} *(1-p_{2008\,great})=1760\\
+n_{2010} *p_{2010\,great}=144,\ n_{2010} *(1-p_{2010\,great})=1900
+$$
+
+All values are more than 10. The success- failure condition is met. We
+assume these distributions are approximately normal.
+
+```{r include=FALSE}
+n_2008 <-nrow(gss_2008)
+n_2010 <-nrow(gss_2010)
+n_2008
+n_2010
+
+p_great_2008 = mean(gss_2008$confinan=="A Great Deal")
+p_great_2010 = mean(gss_2010$confinan=="A Great Deal")
+p_great_2008
+p_great_2010
+
+
+n_2008*p_great_2008
+n_2008*(1-p_great_2008)
+n_2010*p_great_2010
+n_2010*(1-p_great_2010)
+
+p_diff = p_great_2010 - p_great_2008
+p_diff
+```
+
+**Confidence interval**
+
+First, we calculate the 95% confidence interval for the point estimate,
+the difference of the proportion between 2008 and 2010 values.
+
+The sample proportions are,
+
+$$
+p_{great\,2008} = 0.1300049 \\
+p_{great\,2010} =  0.0704501
+$$
+
+The point estimates, $$ { p_{diff}=-0.05955485 }$$.
+
+The standard error,
+$$ SE_{diff}= \sqrt{ \frac{p_{great\,2008}(1-p_{great\,2008})} {n_{2008}} + 
+\frac{p_{great\,2010}(1-p_{great\,2010})} {n_{2010}} } = 0.009378031
+$$
+
+The 95% confidence interval is,
+$$ p_{diff} \pm z_{0.975}*SE_{diff} = (-0.07793545, -0.04117424)$$
+
+```{r include=FALSE}
+se_ci <- sqrt(p_great_2008*(1-p_great_2008)/n_2008 +
+                p_great_2010*(1-p_great_2010)/n_2010)
+
+se_ci
+ci_95 <-c(p_diff-qnorm(0.975)*se_ci, p_diff+qnorm(0.975)*se_ci)
+ci_95
+```
+
+**Hypothesis testing**
+
+Then, we conduct the hypothesis testing for the proportion of people who
+have confidence in financial institution a great deal.
+
+The null hypothesis is that there is no difference of the proportions
+between 2008 and 2010.
+
+The alternative hypothesis is that there is a difference between the
+two.
+
+$$
+H_0: p_{2010\,great}=p_{2008\,great}\\H_A: p_{2010\,great}\neq p_{2008\,great}
+$$
+
+Pooled proportion,
+
+$$
+p_{pooled} =0.1000738
+$$ Pooled standard error,
+
+$$
+SE_{pooled}= \sqrt{ \frac{p_{pooled}(1-p_{pooled})} {n_{2008}} + 
+\frac{p_{pooled\,2010}(1-p_{pooled})} {n_{2010}} } = 0.009411574
+$$
+
+Given $H_0$ is true, p_value,
+
+$$
+p-value=2.486323e-10 \; <\alpha = 0.05
+$$
+
+P-value is far smaller than 0.05. We reject $H_0$. There is convincing
+evidence of a difference between 2008 and 2010.
+
+As we have seen the negative confidence interval, we understand that
+people who have "A Great Deal" of confidence in financial institutions
+**decreased** from 2008 to 2010.
+
+```{r include=FALSE}
+p_pool = (p_great_2008*n_2008 + p_great_2010*n_2010)/(n_2008+n_2010)
+p_pool
+se <- sqrt(p_pool*(1-p_pool)/n_2008 + 
+             p_pool*(1-p_pool)/n_2010 )
+se
+
+z_sta <- p_diff/ se
+z_sta
+p_value <- pnorm(z_sta)*2
+p_value
+p_value < alpha
+
+```
+
+#### **b) "Hardly Any" confidence**
+
+Next we will look into the response of those who have "Hardly any"
+confidence in financial institutions. Likewise, We look at the changes
+in the confidence between 2008 and 2010. As we explored in the previous
+segment, the descriptive data indicate the proportion of people who
+hardly have any confidence in financial institution increased.
+
+We check the conditions to apply the normal models.
+
+-   Independence:
+
+The values are extracted from randomly selected data.
+
+The sample size of 2008 ($n_{2008}=2023$) and 2010 ($n_{2010}=2044$) is
+less than 10% of the population.
+
+-   The success-failure condition:
+
+$$
+n_{2008} *p_{2008\,hardly}=281,\ n_{2008} *(1-p_{2008\,hardly}=1742\\
+n_{2010} *p_{2010\,hardly}=564,\ n_{2010} *(1-p_{2010\,hardly})=1480
+$$
+
+All values are more than 10. The success- failure condition is met. We
+assume these distributions are approximately normal.
+
+```{r include=FALSE}
+
+p_hardly_2008 = mean(gss_2008$confinan=="Hardly Any")
+p_hardly_2010 = mean(gss_2010$confinan=="Hardly Any")
+p_hardly_2008
+p_hardly_2010
+
+
+n_2008*p_hardly_2008
+n_2008*(1-p_hardly_2008)
+n_2010*p_hardly_2010
+n_2010*(1-p_hardly_2010)
+
+p_diff_h = p_hardly_2010 - p_hardly_2008
+p_diff_h
+```
+
+**Confidence interval**
+
+First, we calculate the 95% confidence interval for the point estimate,
+the difference of the proportion between 2008 and 2010 values.
+
+The sample proportions are,
+
+$$
+p_{hardly\,2008} =  0.1389026 \\
+p_{hardly\,2010} =  0.2759295
+$$
+
+The point estimates, $$ { p_{diff}=0.1370269 }$$.
+
+The standard error, $$ 
+SE_{diff}= \sqrt{ \frac{p_{hardly\,2008}(1-p_{hardly\,2008})} {n_{2008}} + 
+\frac{p_{hardly\,2010}(1-p_{hardly\,2010})} {n_{2010}} } = 0.01252478
+$$
+
+The 95% confidence interval is,
+$$ p_{diff} \pm z_{0.975}*SE_{diff} = (0.1124788, 0.1615751)$$
+
+```{r include=FALSE}
+se_ci_h <- sqrt(p_hardly_2008*(1-p_hardly_2008)/n_2008 +
+                p_hardly_2010*(1-p_hardly_2010)/n_2010)
+
+se_ci_h
+ci_95_h <-c(p_diff_h-qnorm(0.975)*se_ci, p_diff_h+qnorm(0.975)*se_ci)
+ci_95_h
+```
+
+**Hypothesis testing**
+
+Then, we conduct the hypothesis testing for the proportion of people who
+hardly have any confidence in financial institutions.
+
+The null hypothesis is that there is no difference of the proportions
+between 2008 and 2010.
+
+The alternative hypothesis is that there is a difference between the
+two.
+
+$$
+H_0: p_{2010\,hardly}=p_{2008\,hardly}\\H_A: p_{2010\,hardly}\neq p_{2008\,hardly}
+$$
+
+Pooled proportion,
+
+$$
+p_{pooled} =0.2077699
+$$ Pooled standard error, $$
+SE_{pooled}= \sqrt{ \frac{p_{pooled}(1-p_{pooled})} {n_{2008}} + \frac{p_{pooled\,2010}(1-p_{pooled})} {n_{2010}} } = 0.01272377
+$$
+
+Given $H_0$ is true, p_value,
+
+$$
+p-value=4.802788e-27 \; <\alpha = 0.05
+$$
+
+P-value is far smaller than 0.05. We reject $H_0$. There is convincing
+evidence of a difference between 2008 and 2010.
+
+As we have seen the positive confidence interval, we understand that
+people who have "Hardly Any" confidence in financial institutions
+**increased** from 2008 to 2010.
+
+```{r include=FALSE}
+p_pool_h = (p_hardly_2008*n_2008 + p_hardly_2010*n_2010)/(n_2008+n_2010)
+p_pool_h
+se_h <- sqrt(p_pool_h*(1-p_pool_h)/n_2008 + 
+           p_pool_h*(1-p_pool_h)/n_2010 )
+se_h
+
+z_sta_h <- p_diff_h/ se_h
+z_sta_h
+p_value_h <- pnorm(z_sta_h,lower.tail = F)*2
+p_value_h
+p_value_h < alpha
+```
+
+### **2 What races were affected by the financial crisis?**
+
+From these studies above, we know that people had lost their confidence
+in financial institutions from 2008 to 2010. In this segment, we look at
+these differences in terms of racial proportion. In this segment, we
+focus on people who have "Hardly Any" confidence in financial
+institutions.
+
+#### **a) "White" responded "Hardly Any"**
+
+We check the conditions to apply the normal models.
+
+-   Independence:
+
+The values are extracted from randomly selected data.
+
+The sample size of 2008 ($n_{2008\,hardly}=281$) and 2010
+($n_{2010\,hardly}=564$) is less than 10% of the population.
+
+-   The success-failure condition:
+
+$$
+n_{2008\,hardly} *p_{2008\,hardly\,white}=207,\ n_{2008\,hardly} *(1-p_{2008\,hardly\,white})=74\\
+n_{2010\,hardly} *p_{2010\,hardly\,white}=446,\ n_{2010\,hardly} *(1-p_{2010\,hardly\,white})=118
+$$
+
+All values are more than 10. The success- failure condition is met. We
+assume these distributions are approximately normal.
+
+**Confidence interval**
+
+First, we calculate the 95% confidence interval for the point estimate,
+the difference of the proportion between 2008 and 2010 values.
+
+The sample proportions are,
+
+$$
+p_{hardly\,white\,2008} =  0.7366548 \\
+p_{hardly\,white\,2010} =  0.7907801
+$$
+
+The point estimates, $$ { p_{diff\,hardly\,white}=0.05412534 }$$.
+
+The standard error, $$ 
+SE_{diff\,hardly\,white}= \sqrt{ \frac{p_{hardly\,white\,2008}(1-p_{hardly\,white\,2008})} {n_{hardly\,2008}} + 
+\frac{p_{hardly\,white\,2010}(1-p_{hardly\,white\,2010})} {n_{hardly\,2010}} } = 0.03136427
+$$
+
+The 95% confidence interval is,
+$$ p_{diff\,hardly\,white} \pm z_{0.975}*SE_{diff\,hardly\,white} = (-0.007347504,  0.115598179)$$
+
+This 95% confidence interval includes 0.
+
+```{r include=FALSE}
+#conditions
+
+hardly_2008 <-gss_2008 %>% filter(confinan=="Hardly Any")
+hardly_2010 <-gss_2010 %>% filter(confinan=="Hardly Any")
+
+n_hardly_2008 <- nrow(hardly_2008)
+n_hardly_2010 <- nrow(hardly_2010)
+n_hardly_2008
+n_hardly_2010
+
+n_hardly_white_2008 <- sum(hardly_2008$race=="White")
+n_hardly_white_2010 <- sum(hardly_2010$race=="White")
+n_hardly_white_2008
+n_hardly_white_2010
+
+
+p_hardly_white_2008 = mean(hardly_2008$race=="White")
+p_hardly_white_2010 = mean(hardly_2010$race=="White")
+p_hardly_white_2008
+p_hardly_white_2010
+
+n_hardly_2008 * p_hardly_white_2008
+n_hardly_2008 * (1- p_hardly_white_2008)
+
+n_hardly_2010 * p_hardly_white_2010
+n_hardly_2010 * (1- p_hardly_white_2010)
+
+
+
+p_diff_hardly_white = p_hardly_white_2010 - p_hardly_white_2008
+p_diff_hardly_white
+
+se_hardly_white_ci <- sqrt((p_hardly_white_2008*
+                              (1-p_hardly_white_2008)/n_hardly_2008+
+                              (p_hardly_white_2010*
+                                 (1-p_hardly_white_2010)/n_hardly_2010)))
+se_hardly_white_ci
+
+ci_95_w <- c(p_diff_hardly_white- qnorm(0.975)*se_hardly_white_ci,
+             p_diff_hardly_white+ qnorm(0.975)*se_hardly_white_ci)
+ci_95_w 
+
+```
+
+**Hypothesis testing**
+
+Then, we conduct the hypothesis testing for the proportion of "white"
+who hardly have any confidence in financial institutions.
+
+The null hypothesis is that there is no difference of the proportions
+between 2008 and 2010.
+
+The alternative hypothesis is that there is a difference between the
+two.
+
+$$
+H_0: p_{2010\,hardly\,white}=p_{2008\,hardly\,white}\\H_A: p_{2010\,hardly\,white}\neq p_{2008\,hardly\,white}
+$$
+
+Pooled proportion,
+
+$$
+p_{pooled\,hardly\,white} =0.7727811
+$$ Pooled standard error, $$
+SE_{pooled\,hardly\,white}= \sqrt{ \frac{p_{pooled\,hardly\,white}(1-p_{pooled\,hardly\,white})} {n_{2008\,hardly\,white}} + \frac{p_{pooled\,hardly\,white}(1-p_{pooled\,hardly\,white})} {n_{2010\,hardly\,white}} } = 0.03059751
+$$ Given $H_0$ is true, p_value,
+
+$$
+p-value=0.07690295 \; >\alpha = 0.05
+$$
+
+P-value is larger than 0.05. We fail to reject $H_0$. There is not
+convincing evidence of a difference of whites who responded that they
+had hardly any confidence in financial institutions between 2008 and
+2010.
+
+As we have seen the confidence interval that include 0, we understand
+that whites who have "Hardly Any" confidence in financial institutions
+had **not changed** from 2008 to 2010.
+
+```{r include=FALSE}
+p_pool_hardly_white = (p_hardly_white_2008*n_hardly_2008 + 
+                         p_hardly_white_2010*n_hardly_2010)/
+                       (n_hardly_2008+n_hardly_2010)
+p_pool_hardly_white
+se_hardly_white <- sqrt(p_pool_hardly_white*(1-p_pool_hardly_white)/n_hardly_2008 +
+                        p_pool_hardly_white*(1-p_pool_hardly_white)/n_hardly_2010 )
+
+se_hardly_white
+z_sta_hardly_white <- p_diff_hardly_white/ se_hardly_white
+p_value_hardly_white <- pnorm(z_sta_hardly_white,lower.tail = F)*2
+p_value_hardly_white
+
+```
+
+#### **b) "Black" responded "Hardly Any"**
+
+We check the conditions to apply the normal models.
+
+-   Independence:
+
+The values are extracted from randomly selected data.
+
+The sample size of 2008 ($n_{2008\,hardly}=281$) and 2010
+($n_{2010\,hardly}=564$) is less than 10% of the population.
+
+-   The success-failure condition:
+
+$$
+n_{2008\,hardly} *p_{2008\,hardly\,black}=45,\ n_{2008\,hardly} *(1-p_{2008\,hardly\,black})=236\\
+n_{2010\,hardly} *p_{2010\,hardly\,black}=76,\ n_{2010\,hardly} *(1-p_{2010\,hardly\,black})=488
+$$
+
+All values are more than 10. The success- failure condition is met. We
+assume these distributions are approximately normal.
+
+**Confidence interval**
+
+First, we calculate the 95% confidence interval for the point estimate,
+the difference of the proportion between 2008 and 2010 values.
+
+The sample proportions are,
+
+$$
+p_{hardly\,black\,2008} =  0.1601423 \\
+p_{hardly\,black\,2010} =  0.1347518
+$$
+
+The point estimates, $$ { p_{diff\,hardly\,black}=-0.02539058 }$$.
+
+The standard error, $$ 
+SE_{diff\,hardly\,black}= \sqrt{ \frac{p_{hardly\,black\,2008}(1-p_{hardly\,black\,2008})} {n_{hardly\,2008}} + 
+\frac{p_{hardly\,black\,2010}(1-p_{hardly\,black\,2010})} {n_{black\,2010}} } = 0.02617943
+$$
+
+The 95% confidence interval is,
+$$ p_{diff\,hardly\,black} \pm z_{0.975}*SE_{diff\,hardly\,black} = (-0.07670132,  0.02592017)$$
+
+This 95% confidence interval includes 0.
+
+```{r include=FALSE}
+#conditions
+
+p_hardly_black_2008 = mean(hardly_2008$race=="Black")
+p_hardly_black_2010 = mean(hardly_2010$race=="Black")
+p_hardly_black_2008
+p_hardly_black_2010
+
+n_hardly_2008 * p_hardly_black_2008
+n_hardly_2008 * (1- p_hardly_black_2008)
+
+n_hardly_2010 * p_hardly_black_2010
+n_hardly_2010 * (1- p_hardly_black_2010)
+
+
+
+p_diff_hardly_black = p_hardly_black_2010 - p_hardly_black_2008
+p_diff_hardly_black
+
+se_hardly_black_ci <- sqrt((p_hardly_black_2008*
+                              (1-p_hardly_black_2008)/n_hardly_2008+
+                              (p_hardly_black_2010*
+                                 (1-p_hardly_black_2010)/n_hardly_2010)))
+se_hardly_black_ci
+
+ci_95_b <- c(p_diff_hardly_black- qnorm(0.975)*se_hardly_black_ci,
+             p_diff_hardly_black+ qnorm(0.975)*se_hardly_black_ci)
+ci_95_b 
+
+```
+
+**Hypothesis testing**
+
+Then, we conduct the hypothesis testing for the proportion of "black"
+who hardly have any confidence in financial institutions.
+
+The null hypothesis is that there is no difference of the proportions
+between 2008 and 2010.
+
+The alternative hypothesis is that there is a difference between the
+two.
+
+$$
+H_0: p_{2010\,hardly\,black}=p_{2008\,hardly\,black}\\H_A: p_{2010\,hardly\,black}\neq p_{2008\,hardly\,black}
+$$
+
+Pooled proportion,
+
+$$
+p_{pooled\,hardly\,black} =0.1431953
+$$ Pooled standard error,
+
+$$
+SE_{pooled\,hardly\,black}= \sqrt{ \frac{p_{pooled\,hardly\,black}(1-p_{pooled\,hardly\,black})} {n_{2008\,hardly\,black}} + \frac{p_{pooled\,hardly\,black}(1-p_{pooled\,hardly\,black})} {n_{2010\,hardly\,black}} } = 0.02557649
+$$
+
+Given $H_0$ is true, p_value,
+
+$$
+p-value= 0.320841 \; >\alpha = 0.05
+$$
+
+P-value is larger than 0.05. We fail to reject $H_0$. There is not
+convincing evidence of a difference of blacks who responded that they
+had hardly any confidence in financial institutions between 2008 and
+2010.
+
+As we have seen the confidence interval that include 0, we understand
+that blacks who have "Hardly Any" confidence in financial institutions
+had **not changed** from 2008 to 2010.
+
+```{r include=FALSE}
+p_diff_hardly_black
+p_pool_hardly_black = (p_hardly_black_2008* n_hardly_2008 + 
+                       p_hardly_black_2010* n_hardly_2010)/
+                      (n_hardly_2008+n_hardly_2010)
+p_pool_hardly_black
+
+se_hardly_black <- sqrt(p_pool_hardly_black*(1-p_pool_hardly_black)/
+                          n_hardly_2008 + 
+                          p_pool_hardly_black*(1-p_pool_hardly_black)/
+                          n_hardly_2010 )
+se_hardly_black
+
+z_sta_hardly_black <- p_diff_hardly_black/ se_hardly_black
+z_sta_hardly_black
+p_value_hardly_black <- pnorm(z_sta_hardly_black,lower.tail = T)*2
+p_value_hardly_black
+#we reject H_o
+```
+
+#### **c) "Other" responded "Hardly Any"**
+
+We check the conditions to apply the normal models.
+
+-   Independence:
+
+The values are extracted from randomly selected data.
+
+The sample size of 2008 ($n_{2008\,hardly}=281$) and 2010
+($n_{2010\,hardly}=564$) is less than 10% of the population.
+
+-   The success-failure condition:
+
+$$
+n_{2008\,hardly} *p_{2008\,hardly\,other}=29,\ n_{2008\,hardly} *(1-p_{2008\,hardly\,other})=252\\
+n_{2010\,hardly} *p_{2010\,hardly\,other}=42,\ n_{2010\,hardly} *(1-p_{2010\,hardly\,other})=522
+$$
+
+All values are more than 10. The success- failure condition is met. We
+assume these distributions are approximately normal.
+
+**Confidence interval**
+
+First, we calculate the 95% confidence interval for the point estimate,
+the difference of the proportion between 2008 and 2010 values.
+
+The sample proportions are,
+
+$$
+p_{hardly\,other\,2008} =  0.1032028 \\
+p_{hardly\,other\,2010} =  0.07446809
+$$
+
+The point estimates, $$ { p_{diff\,hardly\,other}=-0.02539058 }$$.
+
+The standard error, $$ 
+SE_{diff\,hardly\,other}= \sqrt{ \frac{p_{hardly\,other\,2008}(1-p_{hardly\,other\,2008})} {n_{hardly\,2008}} + 
+\frac{p_{hardly\,other\,2010}(1-p_{hardly\,other\,2010})} {n_{hardly\,2010}} } = 0.02125017
+$$
+
+The 95% confidence interval is,
+$$ p_{diff\,hardly\,other} \pm z_{0.975}*SE_{diff\,hardly\,other} = (-0.07038433,  0.01291481)$$
+
+This 95% confidence interval includes 0.
+
+```{r include=FALSE}
+#conditions
+
+p_hardly_other_2008 = mean(hardly_2008$race=="Other")
+p_hardly_other_2010 = mean(hardly_2010$race=="Other")
+p_hardly_other_2008
+p_hardly_other_2010
+
+n_hardly_2008 * p_hardly_other_2008
+n_hardly_2008 * (1- p_hardly_other_2008)
+
+n_hardly_2010 * p_hardly_other_2010
+n_hardly_2010 * (1- p_hardly_other_2010)
+
+
+
+p_diff_hardly_other = p_hardly_other_2010 - p_hardly_other_2008
+p_diff_hardly_black
+
+se_hardly_other_ci <- sqrt((p_hardly_other_2008*
+                              (1-p_hardly_other_2008)/n_hardly_2008+
+                              (p_hardly_other_2010*
+                                 (1-p_hardly_other_2010)/n_hardly_2010)))
+se_hardly_other_ci
+
+ci_95_o <- c(p_diff_hardly_other- qnorm(0.975)*se_hardly_other_ci,
+             p_diff_hardly_other+ qnorm(0.975)*se_hardly_other_ci)
+ci_95_o 
+
+```
+
+**Hypothesis testing**
+
+Then, we conduct the hypothesis testing for the proportion of "other"
+who hardly have any confidence in financial institutions.
+
+The null hypothesis is that there is no difference of the proportions
+between 2008 and 2010.
+
+The alternative hypothesis is that there is a difference between the
+two.
+
+$$
+H_0: p_{2010\,hardly\,other}=p_{2008\,hardly\,other}\\H_A: p_{2010\,hardly\,other}\neq p_{2008\,hardly\,other}
+$$
+
+Pooled proportion,
+
+$$
+p_{pooled\,hardly\,other} =0.08402367
+$$ Pooled standard error, $$
+SE_{pooled\,hardly\,other}= \sqrt{ \frac{p_{pooled\,hardly\,other}(1-p_{pooled\,hardly\,other})} {n_{2008\,hardly\,other}} + \frac{p_{pooled\,hardly\,other}(1-p_{pooled\,hardly\,other})} {n_{2010\,hardly\,other}} } = 0.02025716
+$$
+
+Given $H_0$ is true, p_value,
+
+$$
+p-value= 0.1560451 \; >\alpha = 0.05
+$$
+
+P-value is larger than 0.05. We fail to reject $H_0$. There is not
+convincing evidence of a difference of others who responded that they
+had hardly any confidence in financial institutions between 2008 and
+2010.
+
+As we have seen the confidence interval that include 0, we understand
+that others who have "Hardly Any" confidence in financial institutions
+had **not changed** from 2008 to 2010.
+
+```{r include=FALSE}
+p_diff_hardly_other
+p_pool_hardly_other = (p_hardly_other_2008* n_hardly_2008 + 
+                       p_hardly_other_2010* n_hardly_2010)/
+                      (n_hardly_2008+n_hardly_2010)
+p_pool_hardly_other
+
+se_hardly_other <- sqrt(p_pool_hardly_other*(1-p_pool_hardly_other)/
+                          n_hardly_2008 + 
+                          p_pool_hardly_other*(1-p_pool_hardly_other)/
+                          n_hardly_2010 )
+se_hardly_other
+
+z_sta_hardly_other <- p_diff_hardly_other/ se_hardly_other
+z_sta_hardly_other
+p_value_hardly_other <- pnorm(z_sta_hardly_other,lower.tail = T)*2
+p_value_hardly_other
+#we reject H_o
+```
+
+------------------------------------------------------------------------
+
+## Conclusion
+
+We illustrated three questions in the beginning of the paper;
+
+1.  How has the trust in financial institutions changed in recent years?
+
+2.  How did the financial crisis in 2008 affect people's confidence in
+    financial institutions?
+
+3.  Is there any differences in the confidence among race groups?
+
+From 1975 to 1989, the confidence in financial institutions were high,
+even though we see gradual decrease throughout these years. From the
+1990s, the figures had fluctuated until 2008. From 2008 to 2010, people
+seemed to lose confidence in them considerably.
+
+From this, we focused on the changes between 2008 and 2010. As the
+answer to the question 2 and 3, we found that people who had a great
+deal of confidence in financial institutions plummeted significantly, at
+the same time people who had hardly any confidence in them increased.
+These are statistically proved. We assumed there might be racial
+differences, but we could not find convincing evidence of racial
+differences between 2008 and 2010. This implies that 2008 financial
+crisis equally affected people notwithstanding their racial differences.
+
+\###
+
+　
