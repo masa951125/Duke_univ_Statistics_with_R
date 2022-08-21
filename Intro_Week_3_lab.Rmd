@@ -53,7 +53,7 @@ Within the nine shot attempts, there are six streaks, which are separated by a "
 
     <li>
 
-    [hit]{.ul}
+    [hit]{.underline}
 
     </li>
 
@@ -77,7 +77,7 @@ Within the nine shot attempts, there are six streaks, which are separated by a "
 
     <li>
 
-    [miss]{.ul}
+    [miss]{.underline}
 
     </li>
 
@@ -124,7 +124,7 @@ ggplot(data = kobe_streak, aes(x = length)) +
 
     <li>
 
-    [The shortest streak is of length 1.]{.ul}
+    [The shortest streak is of length 1.]{.underline}
 
     </li>
 
@@ -265,7 +265,7 @@ ggplot(data=sim_streak, aes(length)) +geom_histogram(binwidth = 1)
 
     <li>
 
-    [Somewhat similar]{.ul}
+    [Somewhat similar]{.underline}
 
     </li>
 
@@ -283,7 +283,7 @@ ggplot(data=sim_streak, aes(length)) +geom_histogram(binwidth = 1)
 
     <li>
 
-    [The distributions look very similar. Therefore, there doesn't appear to be evidence for Kobe Bryant's hot hand.]{.ul}
+    [The distributions look very similar. Therefore, there doesn't appear to be evidence for Kobe Bryant's hot hand.]{.underline}
 
     </li>
 

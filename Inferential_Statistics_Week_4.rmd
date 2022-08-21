@@ -34,35 +34,21 @@ dim(nc)
 
 We have observations on 13 different variables, some categorical and some numerical. The meaning of each variable is as follows.
 
-+------------------+----------------------------------------------------------------------------+
 | variable         | description                                                                |
-+==================+============================================================================+
+|------------------|------------------------------------------------------|
 | `fage`           | father's age in years.                                                     |
-+------------------+----------------------------------------------------------------------------+
 | `mage`           | mother's age in years.                                                     |
-+------------------+----------------------------------------------------------------------------+
 | `mature`         | maturity status of mother.                                                 |
-+------------------+----------------------------------------------------------------------------+
 | `weeks`          | length of pregnancy in weeks.                                              |
-+------------------+----------------------------------------------------------------------------+
 | `premie`         | whether the birth was classified as premature (premie) or full-term.       |
-+------------------+----------------------------------------------------------------------------+
 | `visits`         | number of hospital visits during pregnancy.                                |
-+------------------+----------------------------------------------------------------------------+
 | `marital`        | whether mother is `married` or `not married` at birth.                     |
-+------------------+----------------------------------------------------------------------------+
 | `gained`         | weight gained by mother during pregnancy in pounds.                        |
-+------------------+----------------------------------------------------------------------------+
 | `weight`         | weight of the baby at birth in pounds.                                     |
-+------------------+----------------------------------------------------------------------------+
 | `lowbirthweight` | whether baby was classified as low birthweight (`low`) or not (`not low`). |
-+------------------+----------------------------------------------------------------------------+
 | `gender`         | gender of the baby, `female` or `male`.                                    |
-+------------------+----------------------------------------------------------------------------+
 | `habit`          | status of the mother as a `nonsmoker` or a `smoker`.                       |
-+------------------+----------------------------------------------------------------------------+
 | `whitemom`       | whether mom is `white` or `not white`.                                     |
-+------------------+----------------------------------------------------------------------------+
 
 1 There are 1,000 cases in this data set, what do the cases represent?
 
@@ -193,11 +179,11 @@ For more information on the inference function see the help file with `?inferenc
 
 -   We are 95% confident that babies born to nonsmoker mothers are on average 0.05 to 0.58 pounds lighter at birth than babies born to smoker mothers.
 
--   **We are 95% confident that the difference in average weights of babies whose moms are smokers and nonsmokers is between 0.05 to 0.58 pounds.**
+-   We are 95% confident that the difference in average weights of babies whose moms are smokers and nonsmokers is between 0.05 to 0.58 pounds.
 
 -   We are 95% confident that the difference in average weights of babies in this sample whose moms are smokers and nonsmokers is between 0.05 to 0.58 pounds.
 
--   We are 95% confident that babies born to nonsmoker mothers are on average 0.05 to 0.58 pounds heavier at birth than babies born to smoker mothers.
+-   **We are 95% confident that babies born to nonsmoker mothers are on average 0.05 to 0.58 pounds heavier at birth than babies born to smoker mothers.**
 
 ```{r habit-weight-ci}
 # type your code for the Question 5 here, and Knit
@@ -273,6 +259,7 @@ for(i in 30:35){
   df <-rbind(df,c(i, d$p_value))
 } 
 colnames(df)  <- c("age","p_value")
+
 df
 
 

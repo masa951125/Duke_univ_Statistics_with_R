@@ -268,7 +268,7 @@ instead of the comma.
 
     <li>
 
-    [68]{.ul}
+    [68]{.underline}
 
     </li>
 
@@ -325,7 +325,7 @@ nrow(sfo_feb_flights)
 
     <li>
 
-    [No flight is delayed more than 2 hours.]{.ul}
+    [No flight is delayed more than 2 hours.]{.underline}
 
     </li>
 
@@ -390,7 +390,7 @@ summary statistics.
 
     <li>
 
-    [Delta and United Airlines]{.ul}
+    [Delta and United Airlines]{.underline}
 
     </li>
 
@@ -452,7 +452,7 @@ nycflights %>%
 
     <li>
 
-    [July]{.ul}
+    [July]{.underline}
 
     </li>
 
@@ -509,7 +509,7 @@ nycflights %>%
 
     <li>
 
-    [December]{.ul}
+    [December]{.underline}
 
     </li>
 
@@ -545,7 +545,7 @@ nycflights %>%
     <li>
 
     [Median would be more reliable as the distribution of delays is
-    skewed.]{.ul}
+    skewed.]{.underline}
 
     </li>
 
@@ -647,7 +647,7 @@ new variable called ot_dep_rate.**
 
     <li>
 
-    [LGA]{.ul}
+    [LGA]{.underline}
 
     </li>
 
@@ -685,7 +685,7 @@ ggplot(data = nycflights, aes(x = origin, fill = dep_type)) +
 
     <li>
 
-    [N666DN]{.ul}
+    [N666DN]{.underline}
 
     </li>
 
@@ -746,7 +746,7 @@ nycflights %>%
     <li>
 
     [There is an overall postive association between distance and
-    average speed.]{.ul}
+    average speed.]{.underline}
 
     </li>
 

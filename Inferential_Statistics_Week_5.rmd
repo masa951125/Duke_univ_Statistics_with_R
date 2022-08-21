@@ -35,9 +35,9 @@ Take a moment to review the report then address the following questions.
 
 -   A poll conducted by WIN-Gallup International surveyed 52,000 people from 57 countries.
 
--   **A poll conducted by WIN-Gallup International surveyed 51,917 people from 57 countries.**
+-   A poll conducted by WIN-Gallup International surveyed 51,917 people from 57 countries.
 
--   A poll conducted by WIN-Gallup International surveyed 51,927 people from 57 countries.
+-   **A poll conducted by WIN-Gallup International surveyed 51,927 people from 57 countries.**
 
 2 Which of the following methods were used to gather information?
 
@@ -67,6 +67,7 @@ Turn your attention to Table 6 (pages 15 and 16), which reports the sample size 
 
 ```{r load-data}
 data(atheism)
+dim(atheism)
 ```
 
 What does each row of Table 6 correspond to?

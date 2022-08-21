@@ -1,0 +1,375 @@
+---
+title: "Exploring the BRFSS data"
+output: 
+  html_document: 
+    fig_height: 4
+    highlight: pygments
+    theme: spacelab
+---
+
+## Introduction
+
+### Load packages
+
+```{r load-packages, message = FALSE}
+library(ggplot2)
+library(dplyr)
+library(gridExtra) #it helps show multiple plots effectively
+```
+
+### Load data
+
+Make sure your data and R Markdown files are in the same directory. When loaded your data file will be called `brfss2013`. Delete this note when before you submit your work.
+
+```{r load-data}
+load("brfss2013.RData")
+```
+
+------------------------------------------------------------------------
+
+## Part 1: Data
+
+Describe how the observations in the sample are collected, and the implications of this data collection method on the scope of inference (generalizability / causality).
+
+```{r}
+dim(brfss2013)
+```
+
+------------------------------------------------------------------------
+
+## Part 2: Research questions
+
+**Research quesion 1:**
+
+Looking at the current health care coverage in the U.S. What proportion of people is covered by some kind of health care system, such as insurance? Are there any relationships between the coverage and income,or the employment status?
+
+**Research quesion 2:**
+
+Are people who have poor health condition covered by health care system? Is this affected by income or employment status?
+
+**Research quesion 3:**
+
+Despite getting sick, some refrain from visiting hospitals or clinics. We look at the relationship between this sad fact and health care coverage.
+
+------------------------------------------------------------------------
+
+## Part 3: Exploratory data analysis
+
+NOTE: Insert code chunks as needed by clicking on the "Insert a new code chunk" button (green button with orange arrow) above. Make sure that your code is visible in the project you submit. Delete this note when before you submit your work.
+
+**Research quesion 1:**
+
+In the first research, we will use these variables.
+
+hlthpln1: Have Any Health Care Coverage
+
+employ1: Employment Status
+
+X_incomg: Computed Income Categories
+
+First, we look for the number of people both who have any health care coverage and who do not.
+
+```{r}
+brfss2013$hlthpln1 %>% summary()
+```
+
+```{r}
+prop.table(table(brfss2013$hlthpln1))
+```
+
+People who have any health care coverage account for 89%, and 11% of people do not have any.
+
+```{r}
+ggplot(data=brfss2013, aes(X_incomg, fill=hlthpln1))+geom_bar(position="fill")+
+   theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+   labs(x="Income",fill="Health Care Coverage")+
+   ggtitle("Health Care Coverage ~ Income")
+   
+```
+
+```{r}
+ggplot(data=brfss2013, aes(employ1, fill=hlthpln1))+geom_bar(position="fill")+
+   theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+   labs(x="Employment",fill="Health Care Coverage")+
+   ggtitle("Health Care Coverage ~ Employment")
+```
+
+race
+
+```{r}
+ggplot(data=brfss2013, aes(X_racegr3, fill=hlthpln1))+geom_bar(position="fill")+
+   theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+   labs(x="Race",fill="Health Care Coverage")+
+   ggtitle("Health Care Coverage ~ Race")
+```
+
+From this graph, we understand that "Hispanic" has the largest proportion of non health care covered people, and the second is "Black".
+
+Then, we look at the racial proportion table among people who do not have health care coverage. First, we make two dataset filtering by a variable,"hlthpln1". "no_health_care" illustrates people without any health care coverage, "health_care" people with health care coverage.
+
+```{r}
+no_health_care <- brfss2013 %>% filter(hlthpln1=="No")
+
+health_care <-brfss2013 %>% filter(hlthpln1=="Yes")
+
+
+```
+
+general health condition
+
+```{r}
+g1 <- ggplot()+ geom_bar(data=no_health_care, aes(x=genhlth, y = ..count.. / sum(..count..))) +
+  ylim(0,0.5)+
+  ggtitle("No health care")+
+  labs(x="general health condition", y="proportion")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+g2<- ggplot()+ geom_bar(data= health_care, aes(x=genhlth, y = ..count.. / sum(..count..))) +
+  ylim(0,0.5) + 
+  ggtitle("Health care")+
+  labs(x="general health condition",y="proportion")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+grid.arrange(g1,g2, nrow=1, ncol=2)
+```
+
+The distribution of people with health care coverage is right-skewed, which means they feel healthier than people without the coverage.This reveals an interesting fact. Intuitively, we think people who have rather bad health condition need some kind of preparation, but this data shows that people with good health condition seem to be well-prepared.
+
+Education level
+
+```{r fig.height=6}
+
+g1 <- ggplot()+ geom_bar(data=no_health_care, aes(x=educa,y = ..count.. / sum(..count..))) +
+  ylim(0,0.5)+
+  ggtitle("No health care")+
+  labs(x="education level", y="proportion")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+g2<- ggplot()+ geom_bar(data= health_care, aes(x=educa,y = ..count.. / sum(..count..))) +
+  ylim(0,0.5) + 
+  ggtitle("Health care")+
+  labs(x="education level",y="proportion")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+grid.arrange(g1,g2, nrow=1, ncol=2)
+```
+
+Income
+
+```{r}
+g1 <- ggplot()+ geom_bar(data=no_health_care, aes(x=X_incomg,y = ..count.. / sum(..count..))) +
+  ylim(0,0.5)+
+  ggtitle("No health care")+
+  labs(x="income", y="proportion")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+g2<- ggplot()+ geom_bar(data= health_care, aes(x=X_incomg, y = ..count.. / sum(..count..))) +
+  ylim(0,0.5) + 
+  ggtitle("Health care")+
+  labs(x="income",y="proportion")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+grid.arrange(g1,g2, nrow=1, ncol=2)
+```
+
+```{r}
+g1 <- ggplot()+ geom_bar(data=no_health_care, aes(x=employ1, y = ..count.. / sum(..count..))) +
+  ylim(0,0.5)+
+  ggtitle("No health care")+
+  labs(x="employment", y="proportion")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+g2<- ggplot()+ geom_bar(data= health_care, aes(x=employ1, y = ..count.. / sum(..count..))) +
+  ylim(0,0.5) + 
+  ggtitle("Health care")+
+  labs(x="employment",y="proportion")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+grid.arrange(g1,g2, nrow=1, ncol=2)
+```
+
+Then we focus on people with "Poor" health condition.
+
+```{r}
+#no coverage
+dx <- no_health_care %>% summarise(health=mean(genhlth=="Poor", na.rm=T))
+dy <- health_care %>% summarise(health=mean(genhlth=="Poor", na.rm=T))
+dz <- brfss2013 %>% summarise(health=mean(genhlth=="Poor", na.rm=T))
+
+#Proportion of health "Poor" in terms of health care coverage
+data.frame(dx, dy, dz) %>% 
+  rename("No coverage"= health, "With coverage"=health.1, "Average"=health.2)
+```
+
+```{r}
+df_no_health_care  <-data.frame(
+prop.table(table(no_health_care$X_racegr3)),
+prop.table(table(brfss2013$X_racegr3)))
+
+df_no_health_care  <- df_no_health_care[,-3]
+colnames(df_no_health_care ) <- c("Race", "No health care coverage", "average")
+df_no_health_care
+```
+
+Compared to the average, it is evident that "Black" and "Hispanic" share the large portion, 12.1% and 18.6% respectively.
+
+```{r}
+ggplot(data=no_health_care) + geom_bar(aes(employ1))
+```
+
+**Research quesion 2:**
+
+genhlth: General Health
+
+hlthpln1: Have Any Health Care Coverage
+
+employ1: Employment Status
+
+X_incomg: Computed Income Categories
+
+```{r}
+ggplot(data=brfss2013) + geom_bar(aes(genhlth))+
+  ggtitle("Heatlth Condition")
+```
+
+```{r}
+ggplot(data=brfss2013) + geom_bar(aes(genhlth,fill=hlthpln1))+
+   labs(x="Heatlth Condition",fill="Health Care Coverage")+
+   ggtitle("Health Care Coverage ~ Health Condition")
+```
+
+```{r}
+ggplot(data=brfss2013) + geom_bar(aes(genhlth,fill=hlthpln1),position="fill")+
+   labs(x="Heatlth Condition",fill="Health Care Coverage")+
+   ggtitle("Health Care Coverage ~ Health Condition")
+```
+
+```{r}
+#no coverage
+dx <- brfss2013 %>% filter(hlthpln1=="No") %>% summarise(health=mean(genhlth=="Poor", na.rm=T))
+dy <- brfss2013 %>% filter(hlthpln1=="Yes") %>% summarise(health=mean(genhlth=="Poor", na.rm=T))
+dz <- brfss2013 %>% summarise(health=mean(genhlth=="Poor", na.rm=T))
+
+#Proportion of health "Poor" in terms of health care coverage
+data.frame(dx, dy, dz) %>% 
+  rename("No coverage"= health, "With coverage"=health.1, "Average"=health.2)
+```
+
+```{r}
+ggplot(data=brfss2013 %>% filter(hlthpln1=="No",genhlth=="Poor")) +geom_bar(aes(employ1))+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+   labs(x="Employment")+
+   ggtitle("Health Care Coverage: No ~ Health Condition: Poor")
+```
+
+```{r}
+ggplot(data=brfss2013 %>% filter(hlthpln1=="Yes",genhlth=="Poor")) +geom_bar(aes(employ1))+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+   labs(x="Employment")+
+   ggtitle("Health Care Coverage: Yes ~ Health Condition: Poor")
+```
+
+```{r}
+ggplot(data=brfss2013 %>% filter(hlthpln1=="No",genhlth=="Poor")) +geom_bar(aes(X_incomg))+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+   labs(x="Income")+
+   ggtitle("Health Care Coverage: No ~ Health Condition: Poor")
+```
+
+```{r}
+ggplot(data=brfss2013 %>% filter(hlthpln1=="Yes",genhlth=="Poor")) +geom_bar(aes(X_incomg))+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+   labs(x="Income")+
+   ggtitle("Health Care Coverage: Yes ~ Health Condition: Poor")
+```
+
+**Research quesion 3:**
+
+used variables
+
+hlthpln1: Have Any Health Care Coverage
+
+medcost: Could Not See Dr. Because Of Cost
+
+employ1: Employment Status
+
+X_incomg: Computed Income Categories X_racegr3: Computed Five Level Race/Ethnicity Category.
+
+```{r}
+unique(brfss2013$X_racegr3)
+```
+
+```{r}
+prop.table(table(brfss2013$medcost))
+```
+
+This figures are similar to the ratio of the health care coverage, as we discussed in research question 1. Then we make a table.
+
+```{r}
+prop.table(table("Does not see doctor" = brfss2013$medcost, "Health care coverage" =brfss2013$hlthpln1),2)
+```
+
+Given having any health care coverage, the proportion of people who gave up seeing a doctor due to cost is very small, namely 8%. In contrast, given having no health care coverage, the ratio of people who gave up seeing a doctor is very large, 45.3%. There seems to be close relationship between them. Health care coverage plays a big role for their decision.
+
+Then, what factors prevent them from going to hospitals or clinics? We will investigate the dataset further. Firstly, we will look at he percentage of people who does not see a doctor given without health care coverage, and stratify the data in term of their income.
+
+```{r}
+income_no_coverage <- brfss2013 %>% 
+  group_by(X_incomg) %>% filter(hlthpln1=="No")%>%
+  summarize(Yes = mean(medcost=="Yes", na.rm=T)*100) 
+income_no_coverage
+
+```
+
+As the income increases, the proportion declines.
+
+```{r}
+ggplot() +
+  geom_bar(data=income_no_coverage, aes(x= X_incomg, y= Yes),stat = "identity", fill= "red")+
+  labs(x="Income", y="No Health Care Coverage")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  ggtitle("No health Care Coverage ~ Did not see doctor")
+
+```
+
+With the coverage, we find the sharp contrast with that data.
+
+```{r}
+income_coverage <- brfss2013 %>% 
+  group_by(X_incomg) %>% filter(hlthpln1=="Yes")%>%
+  summarize(Yes = mean(medcost=="Yes", na.rm=T)*100) 
+income_coverage
+```
+
+Next, we will look into other economic factor, employment status.
+
+```{r}
+employment_no_coverage <-brfss2013 %>% group_by(employ1) %>% filter(hlthpln1=="No")%>%
+  summarize(Yes= mean(medcost=="Yes", na.rm=T)*100) 
+employment_no_coverage
+```
+
+```{r}
+ggplot() +
+  geom_bar(data=employment_no_coverage, aes(x= employ1, y= Yes),stat = "identity", fill= "red")+
+  labs(x="Employment", y="No Health Care Coverage")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  ggtitle("No health care coverage ~ Did not see doctor")
+
+```
+
+```{r}
+employment_coverage <-brfss2013 %>% group_by(employ1) %>% filter(hlthpln1=="Yes")%>%
+  summarize(Yes= mean(medcost=="Yes", na.rm=T)*100) 
+employment_coverage
+```
+
+People who are unable to work
+
+```{r}
+Unable_to_work <-brfss2013 %>% filter(hlthpln1=="No",medcost=="Yes", employ1=="Unable to work")
+ggplot(data=Unable_to_work) + geom_histogram(aes(X_incomg),stat="count")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  ggtitle("Unable to work")
+```
+
+People who are out of work more than a year.
+
+```{r}
+out_of_work_more_than_year <-brfss2013 %>% filter(hlthpln1=="No",medcost=="Yes", employ1=="Out of work for 1 year or more")
+ggplot(data=out_of_work_more_than_year) + geom_histogram(aes(X_incomg),stat="count")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  ggtitle("Out of work more than a year")
+```

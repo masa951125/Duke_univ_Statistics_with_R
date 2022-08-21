@@ -180,7 +180,7 @@ dim(arbuthnot)
 
     <li>
 
-    [82]{.ul}
+    [82]{.underline}
 
     </li>
 
@@ -325,7 +325,7 @@ see in the data.
     which peaks around 1640. After 1640 there is a decrease in the
     number of girls baptised, but the number begins to increase again
     in 1660. Overall the trend is an increase in the number of girls
-    baptised.]{.ul}
+    baptised.]{.underline}
 
     </li>
 
@@ -523,6 +523,7 @@ States. Load up the present day data with the following command.
 
 ```{r load-present-data}
 data(present)
+dim(present)
 ```
 
 The data are stored in a data frame called `present` which should now be
@@ -552,7 +553,7 @@ loaded in your workspace.
 
     <li>
 
-    [74]{.ul}
+    [74]{.underline}
 
     </li>
 
@@ -595,7 +596,7 @@ range(present$year)
 
     <li>
 
-    [True]{.ul}
+    [True]{.underline}
 
     </li>
 
@@ -631,7 +632,7 @@ ggplot(data=present, aes(x= year, y= prop_boys))+
 
     <li>
 
-    [Every year there are more boys born than girls.]{.ul}
+    [Every year there are more boys born than girls.]{.underline}
 
     </li>
 
@@ -660,8 +661,9 @@ length(present$year)
 
     <li>
 
-    There appears to be no trend in the boy-to-girl ratio from 1940
-    to 2013.
+    There appears to be no trend in the boy-to-girl ratio from 1940 to
+
+    2013. 
 
     </li>
 
@@ -676,7 +678,7 @@ length(present$year)
     <li>
 
     [There is initially a decrease in the boy-to-girl ratio, and then an
-    increase between 1960 and 1970, followed by a decrease.]{.ul}
+    increase between 1960 and 1970, followed by a decrease.]{.underline}
 
     </li>
 
@@ -738,7 +740,7 @@ ggplot(data=present, aes(x=year, y= prop_boy_girl)) +
 
     <li>
 
-    [2007]{.ul}
+    [2007]{.underline}
 
     </li>
 

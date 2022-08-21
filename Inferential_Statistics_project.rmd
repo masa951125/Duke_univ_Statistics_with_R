@@ -1,12 +1,12 @@
 ---
 title: "Statistical inference with the GSS data"
 output:
+  word_document: default
   html_document:
     fig_height: 4
     highlight: pygments
     theme: spacelab
   pdf_document: default
-  word_document: default
 editor_options:
   markdown:
     wrap: 72
@@ -940,7 +940,5 @@ These are statistically proved. We assumed there might be racial
 differences, but we could not find convincing evidence of racial
 differences between 2008 and 2010. This implies that 2008 financial
 crisis equally affected people notwithstanding their racial differences.
-
-\###
 
 　
